@@ -42,6 +42,11 @@ class DB {
         employeeId,
       ]);
   }
+  delRole(roleId) {
+    return this.connection
+      .promise()
+      .query("DELETE FROM role WHERE id = ?", roleId);
+  }
 
   findAllRoles() {
     return this.connection

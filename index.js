@@ -10,15 +10,15 @@ function init() {
 
   console.log(logoText);
 
-  loadMainPrompts();
+  initPrompts();
 }
 
-function loadMainPrompts() {
+function initPrompts() {
   prompt([
     {
       type: "list",
       name: "choice",
-      message: "What would you like to do?",
+      message: "Select an option",
       choices: [
         {
           name: "View All Employees",
@@ -27,6 +27,10 @@ function loadMainPrompts() {
         {
           name: "View Departments",
           value: "VIEW_DEPARTMENTS",
+        },
+        {
+          name: "View All Roles",
+          value: "VIEW_ROLES",
         },
 
         {
@@ -40,21 +44,14 @@ function loadMainPrompts() {
         },
 
         {
-          name: "View All Roles",
-          value: "VIEW_ROLES",
-        },
-        {
           name: "Add Role",
           value: "ADD_ROLE",
         },
         {
-          name: "Remove Role",
-          value: "REMOVE_ROLE",
+          name: "Delete Role",
+          value: "DELETE_ROLE",
         },
-        {
-          name: "View All Departments",
-          value: "VIEW_DEPARTMENTS",
-        },
+
         {
           name: "Add Department",
           value: "ADD_DEPARTMENT",
@@ -100,6 +97,9 @@ function loadMainPrompts() {
       case "VIEW_ROLES":
         viewRoles();
         break;
+      case "DELETE_ROLE":
+        deleteRole();
+        break;
 
       default:
         quit();
@@ -114,7 +114,7 @@ function viewRoles() {
       console.log("\n");
       console.table(roles);
     })
-    .then(() => loadMainPrompts());
+    .then(() => initPrompts());
 }
 
 function viewEmployees() {
@@ -124,7 +124,7 @@ function viewEmployees() {
       console.log("\n");
       console.table(employees);
     })
-    .then(() => loadMainPrompts());
+    .then(() => initPrompts());
 }
 
 function viewEmployeesByDepartment() {
@@ -149,7 +149,28 @@ function viewEmployeesByDepartment() {
         console.log("\n");
         console.table(employees);
       })
-      .then(() => loadMainPrompts());
+      .then(() => initPrompts());
+  });
+}
+function deleteRole() {
+  db.findAllRoles().then(([rows]) => {
+    let roles = rows;
+    const roleChoices = roles.map(({ id, title }) => ({
+      name: title,
+      value: id,
+    }));
+
+    prompt([
+      {
+        type: "list",
+        name: "roleId",
+        message: "Which role do you want to remove?",
+        choices: roleChoices,
+      },
+    ])
+      .then((res) => db.delRole(res.roleId))
+      .then(() => console.log("Removed role from the database"))
+      .then(() => initPrompts());
   });
 }
 
@@ -171,7 +192,7 @@ function delEmployee() {
     ])
       .then((res) => db.delEmployee(res.employeeId))
       .then(() => console.log("Removed employee from the database"))
-      .then(() => loadMainPrompts());
+      .then(() => initPrompts());
   });
 }
 
@@ -209,7 +230,7 @@ function updateRole() {
         ])
           .then((res) => db.updateRole(employeeId, res.roleId))
           .then(() => console.log("Updated employee's role"))
-          .then(() => loadMainPrompts());
+          .then(() => initPrompts());
       });
     });
   });
@@ -241,7 +262,7 @@ function addRole() {
     ]).then((role) => {
       db.createRole(role)
         .then(() => console.log(`Added ${role.title} to the database`))
-        .then(() => loadMainPrompts());
+        .then(() => initPrompts());
     });
   });
 }
@@ -253,7 +274,7 @@ function viewDepartments() {
       console.log("\n");
       console.table(departments);
     })
-    .then(() => loadMainPrompts());
+    .then(() => initPrompts());
 }
 
 function addDepartment() {
@@ -266,7 +287,7 @@ function addDepartment() {
     let name = res;
     db.createDepartment(name)
       .then(() => console.log(`Added ${name.name} to the database`))
-      .then(() => loadMainPrompts());
+      .then(() => initPrompts());
   });
 }
 
@@ -329,7 +350,7 @@ function addEmployee() {
             .then(() =>
               console.log(`Added ${firstName} ${lastName} to the database`)
             )
-            .then(() => loadMainPrompts());
+            .then(() => initPrompts());
         });
       });
     });
